@@ -1,4 +1,9 @@
 import { BaseAxios } from './axios';
+import NuxtLink from '~~/components/shared/nuxt-link.vue';
+
+export const components: { [key: string]: any } = {
+    NuxtLink
+};
 
 try {
     Object.defineProperty(String.prototype, 'capitalize', {
@@ -15,21 +20,31 @@ export function build(element) {
     Object.keys(element.events || {}).forEach((key: any) => {
         events['on' + key.capitalize()] = element.events[key];
     });
+    let tag = element.tag;
+    if (components[tag]) {
+        tag = components[tag];
+    }
     if (!element.childrens || !element.childrens.length) {
-        return <element.tag {...(element.props || {})} {...(events)}>{element.content}</element.tag>;
+        return <tag {...(element.props || {})} {...(events)}>{element.content}</tag>;
     } else {
-        return <element.tag {...(element.props || {})} {...(events)}>{element.childrens.map(item => build(item))}</element.tag>;
+        return <tag {...(element.props || {})} {...(events)}>{element.childrens.map(item => build(item))}</tag>;
     }
 }
 
 export async function loadComponent(name: string) {
-    const axios = new BaseAxios();
-    const res = await axios.get(`/static/components/${name}.js`, {
-        dataType: 'script'
-    });
-    let createCmp;
-    eval(`createCmp = ${res.data}`);
-    return createCmp(defineComponent, build);
+    try {
+        if (components[name]) {
+            return components[name];
+        }
+        const axios = new BaseAxios();
+        const res = await axios.get(`http://localhost:3000/static/components/${name}.js`);
+        let createCmp;
+        eval(`createCmp = ${res.data}`);
+        components[name] = createCmp(defineComponent, build);
+        return components[name];
+    } catch (err) {
+        return null;
+    }
 }
 
 export async function loadComponents(componentNames: Array<string>) {
@@ -37,7 +52,6 @@ export async function loadComponents(componentNames: Array<string>) {
         [key: string]: any;
     } = {};
     (await Promise.all(componentNames.map(cmpName => loadComponent(cmpName)))).forEach((cmp, index) => {
-        console.log(cmp);
         components[componentNames[index]] = cmp;
     });
     return components;

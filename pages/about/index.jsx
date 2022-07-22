@@ -1,13 +1,11 @@
-import { build, loadComponent, loadComponents } from "~~/utils/component";
-import NuxtLink from '~~/components/shared/nuxt-link.vue';
+import { build, loadComponents } from "~~/utils/component";
 
-const componentNames = ['text'];
+const componentNames = ['text', 'foo', 'bar'];
 
 export default defineAsyncComponent(
     async () => {
         try {
-            // const Text = await loadComponent('text');
-            const components = await loadComponents(componentNames);
+            await loadComponents(componentNames);
             return Promise.resolve({
                 data: () => {
                     return {
@@ -22,10 +20,10 @@ export default defineAsyncComponent(
                             content: 'About....',
                             childrens: [
                                 {
-                                    tag: components.text,
+                                    tag: 'text',
                                     content: '',
                                     props: {
-                                        msg: '99009900'
+                                        msg: 'I am About'
                                     },
                                     events: {
                                         click: function (event, args) {
@@ -38,7 +36,15 @@ export default defineAsyncComponent(
                                     }
                                 },
                                 {
-                                    tag: NuxtLink,
+                                    tag: 'foo',
+                                    content: 'Hihi'
+                                },
+                                {
+                                    tag: 'bar',
+                                    content: 'Haha'
+                                },
+                                {
+                                    tag: 'NuxtLink',
                                     content: 'To Home',
                                     props: {
                                         to: '/'
